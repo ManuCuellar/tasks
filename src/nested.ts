@@ -1,12 +1,17 @@
 import { Answer } from "./interfaces/answer";
 import { Question, QuestionType } from "./interfaces/question";
+import { makeBlankQuestion, duplicateQuestion } from "./objects";
 
 /**
  * Consumes an array of questions and returns a new array with only the questions
  * that are `published`.
  */
 export function getPublishedQuestions(questions: Question[]): Question[] {
-    return [];
+    const publishedQuestions = questions.filter(
+        (question: Question): boolean => question.published,
+    );
+
+    return publishedQuestions;
 }
 
 /**
@@ -15,7 +20,14 @@ export function getPublishedQuestions(questions: Question[]): Question[] {
  * `expected`, and an empty array for its `options`.
  */
 export function getNonEmptyQuestions(questions: Question[]): Question[] {
-    return [];
+    const noEmptyQuesions = questions.filter(
+        (question: Question): boolean =>
+            question.body !== "" ||
+            question.expected !== "" ||
+            question.options.length !== 0,
+    );
+
+    return noEmptyQuesions;
 }
 
 /***
@@ -24,9 +36,12 @@ export function getNonEmptyQuestions(questions: Question[]): Question[] {
  */
 export function findQuestion(
     questions: Question[],
-    id: number
+    id: number,
 ): Question | null {
-    return null;
+    return (
+        questions.find((question: Question): boolean => question.id === id) ??
+        null
+    );
 }
 
 /**
@@ -34,7 +49,11 @@ export function findQuestion(
  * with the given `id`.
  */
 export function removeQuestion(questions: Question[], id: number): Question[] {
-    return [];
+    const noIdQuestion = questions.filter(
+        (question: Question): boolean => question.id !== id,
+    );
+
+    return noIdQuestion;
 }
 
 /***
@@ -42,21 +61,36 @@ export function removeQuestion(questions: Question[], id: number): Question[] {
  * questions, as an array.
  */
 export function getNames(questions: Question[]): string[] {
-    return [];
+    const onlyNames = questions.map(
+        (question: Question): string => question.name,
+    );
+
+    return onlyNames;
 }
 
 /***
  * Consumes an array of questions and returns the sum total of all their points added together.
  */
 export function sumPoints(questions: Question[]): number {
-    return 0;
+    const sum = questions.reduce(
+        (sum: number, question: Question): number => sum + question.points,
+        0,
+    );
+    return sum;
 }
 
 /***
  * Consumes an array of questions and returns the sum total of the PUBLISHED questions.
  */
 export function sumPublishedPoints(questions: Question[]): number {
-    return 0;
+    const publishedQuestions = questions.filter(
+        (question: Question): boolean => question.published,
+    );
+    const sumPublished = publishedQuestions.reduce(
+        (sum: number, question: Question): number => sum + question.points,
+        0,
+    );
+    return sumPublished;
 }
 
 /***
@@ -77,7 +111,22 @@ id,name,options,points,published
  * Check the unit tests for more examples!
  */
 export function toCSV(questions: Question[]): string {
-    return "";
+    const header: string = "id,name,options,points,published";
+
+    const toString = questions.map(
+        (question: Question): string =>
+            question.id +
+            "," +
+            question.name +
+            "," +
+            question.options.length +
+            "," +
+            question.points +
+            "," +
+            question.published,
+    );
+
+    return header + "\n" + toString.join("\n");
 }
 
 /**
@@ -86,7 +135,15 @@ export function toCSV(questions: Question[]): string {
  * making the `text` an empty string, and using false for both `submitted` and `correct`.
  */
 export function makeAnswers(questions: Question[]): Answer[] {
-    return [];
+    const answer = questions.map(
+        (question: Question): Answer => ({
+            questionId: question.id,
+            text: "",
+            submitted: false,
+            correct: false,
+        }),
+    );
+    return answer;
 }
 
 /***
@@ -94,7 +151,10 @@ export function makeAnswers(questions: Question[]): Answer[] {
  * each question is now published, regardless of its previous published status.
  */
 export function publishAll(questions: Question[]): Question[] {
-    return [];
+    const publishedALL = questions.map(
+        (question: Question): Question => ({ ...question, published: true }),
+    );
+    return publishedALL;
 }
 
 /***
@@ -102,7 +162,13 @@ export function publishAll(questions: Question[]): Question[] {
  * are the same type. They can be any type, as long as they are all the SAME type.
  */
 export function sameType(questions: Question[]): boolean {
-    return false;
+    const firstType = questions[0]?.type;
+
+    const filtro2 = questions.every(
+        (question: Question): boolean => question.type === firstType,
+    );
+
+    return filtro2;
 }
 
 /***
@@ -114,9 +180,11 @@ export function addNewQuestion(
     questions: Question[],
     id: number,
     name: string,
-    type: QuestionType
+    type: QuestionType,
 ): Question[] {
-    return [];
+    const newQuest: Question = makeBlankQuestion(id, name, type);
+    const newArray = [...questions, newQuest];
+    return newArray;
 }
 
 /***
@@ -127,9 +195,15 @@ export function addNewQuestion(
 export function renameQuestionById(
     questions: Question[],
     targetId: number,
-    newName: string
+    newName: string,
 ): Question[] {
-    return [];
+    const editQuestiones = questions.map(
+        (question: Question): Question =>
+            (question.id == targetId ? { ...question, name: newName } : null) ??
+            question,
+    );
+
+    return editQuestiones;
 }
 
 /***
@@ -142,9 +216,22 @@ export function renameQuestionById(
 export function changeQuestionTypeById(
     questions: Question[],
     targetId: number,
-    newQuestionType: QuestionType
+    newQuestionType: QuestionType,
 ): Question[] {
-    return [];
+    const newArray = questions.map(
+        (question: Question): Question =>
+            question.id === targetId ?
+                {
+                    ...question,
+                    type: newQuestionType,
+                    options:
+                        newQuestionType === "multiple_choice_question" ?
+                            question.options
+                        :   [],
+                }
+            :   question,
+    );
+    return newArray;
 }
 
 /**
@@ -157,15 +244,40 @@ export function changeQuestionTypeById(
  * Remember, if a function starts getting too complicated, think about how a helper function
  * can make it simpler! Break down complicated tasks into little pieces.
  */
+function editOptions(
+    options: string[],
+    targetOptionIndex: number,
+    newOption: string,
+): string[] {
+    return targetOptionIndex === -1 ?
+            [...options, newOption]
+        :   options.map((option: string, index: number): string =>
+                index === targetOptionIndex ? newOption : option,
+            );
+}
+
 export function editOption(
     questions: Question[],
     targetId: number,
     targetOptionIndex: number,
-    newOption: string
+    newOption: string,
 ): Question[] {
-    return [];
-}
+    const newArray = questions.map(
+        (question: Question): Question =>
+            question.id === targetId ?
+                {
+                    ...question,
+                    options: editOptions(
+                        question.options,
+                        targetOptionIndex,
+                        newOption,
+                    ),
+                }
+            :   question,
+    );
 
+    return newArray;
+}
 /***
  * Consumes an array of questions, and produces a new array based on the original array.
  * The only difference is that the question with id `targetId` should now be duplicated, with
@@ -175,7 +287,15 @@ export function editOption(
 export function duplicateQuestionInArray(
     questions: Question[],
     targetId: number,
-    newId: number
+    newId: number,
 ): Question[] {
-    return [];
+    const newArray = questions.reduce<Question[]>(
+        (result, question) =>
+            question.id === targetId ?
+                [...result, question, duplicateQuestion(newId, question)]
+            :   [...result, question],
+        [],
+    );
+
+    return newArray;
 }
