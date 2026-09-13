@@ -10,13 +10,7 @@ type Holiday =
 
 export function CycleHoliday(): React.JSX.Element {
     const [holiday, setHoliday] = useState<Holiday>("Christmas");
-    const holidayEmoji: Record<Holiday, string> = {
-        Christmas: "🎄",
-        Halloween: "🎃",
-        "New Year": "🎉",
-        Thanksgiving: "🦃",
-        Valentines: "❤️",
-    };
+
     const byYear: Record<Holiday, Holiday> = {
         "New Year": "Valentines",
         Valentines: "Halloween",
