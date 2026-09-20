@@ -20,17 +20,21 @@ export function GiveAttempts(): React.JSX.Element {
                 value={requestAttempts}
                 onChange={updateRequestAttempts}
             />
+
             <Button
-                onClick={() =>
-                    requestAttempts !== "" ?
-                        setAttempts(attempts + parseInt(requestAttempts))
-                    :   attempts
-                }
+                onClick={() => {
+                    if (requestAttempts !== "") {
+                        setAttempts(attempts + parseInt(requestAttempts));
+                    }
+                }}
             >
                 Gain
             </Button>
+
             <Button
-                onClick={() => setAttempts(attempts - 1)}
+                onClick={() => {
+                    setAttempts(attempts - 1);
+                }}
                 disabled={attempts === 0}
             >
                 Use
